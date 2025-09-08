@@ -43,6 +43,7 @@ async def test_project(dut):
     dut.ui_in.value = 0
     await ClockCycles(dut.clk, 1)
 
+    await RisingEdge(dut.clk)  # wait one cycle
     assert dut.uo_out.value & 0b1, "Product should be dispensed after 1 x 2 rupee"
 
     dut._log.info("Apply 2 rupee coin followed by another 2 rupee coin -> expect product + change")
