@@ -30,53 +30,53 @@ module tt_um_vending_machine (
     // ----------------------------------------------------
     typedef enum logic [1:0] {S0, S1, S2, S3} state_t;
     state_t state, next;
+    reg prod_next, change_next;
 
-    // Sequential state update
+    // Sequential update
     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n)
-            state <= S0;
-        else if (ena)
-            state <= next;
+        if (!rst_n) begin
+            state  <= S0;
+            prod   <= 0;
+            change <= 0;
+        end else if (ena) begin
+            state  <= next;
+            prod   <= prod_next;
+            change <= change_next;
+        end
     end
 
     // Next-state and output logic
     always @(*) begin
-        prod   = 0;
-        change = 0;
-        next   = state;
+        prod_next   = 0;
+        change_next = 0;
+        next        = state;
 
         case (state)
             S0: begin
-                if (coinx) next = S1;       // 1 rupee
-                else if (coiny) next = S2;  // 2 rupees
+                if (coinx) next = S1;       
+                else if (coiny) next = S2;  
             end
             S1: begin
                 if (coinx) begin
-                    prod = 1;               // vend at 2 rupees
+                    prod_next = 1;  // vend at 2 rupees
                     next = S0;
-                end
-                else if (coiny) begin
-                    prod = 1;               // vend at 3 rupees
+                end else if (coiny) begin
+                    prod_next = 1;  // vend at 3 rupees
                     next = S0;
                 end
             end
             S2: begin
                 if (coinx) begin
-                    prod = 1;               // vend at 3 rupees
+                    prod_next = 1;  // vend at 3 rupees
+                    next = S0;
+                end else if (coiny) begin
+                    prod_next   = 1;  // vend
+                    change_next = 1;  // return change
                     next = S0;
                 end
-                else if (coiny) begin
-                    prod   = 1;             // vend at 4 rupees
-                    change = 1;             // return change
-                    next   = S0;
-                end
-            end
-            S3: begin
-                prod   = 1;   // vend
-                change = 1;   // return change
-                next   = S0;
             end
         endcase
     end
+
 
 endmodule
