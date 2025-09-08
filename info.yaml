@@ -17,7 +17,6 @@ project:
   # List your project's source files here.
   # Files must be inside ./src
   source_files:
-    - "vending_machine.v"
     - "project.v"
 
 # The pinout of your project. Use descriptive names.
