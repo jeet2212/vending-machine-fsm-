@@ -8,33 +8,53 @@ from cocotb.triggers import ClockCycles
 
 @cocotb.test()
 async def test_project(dut):
-    dut._log.info("Start")
+    dut._log.info("Start Vending Machine FSM Test")
 
-    # Set the clock period to 10 us (100 KHz)
+    # Clock 10us period (100kHz)
     clock = Clock(dut.clk, 10, units="us")
     cocotb.start_soon(clock.start())
 
     # Reset
-    dut._log.info("Reset")
     dut.ena.value = 1
     dut.ui_in.value = 0
     dut.uio_in.value = 0
     dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
+    await ClockCycles(dut.clk, 5)
     dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 2)
 
-    dut._log.info("Test project behavior")
+    dut._log.info("Apply 1 rupee coin")
+    dut.ui_in.value = 0b00000001  # coinx = 1
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 2)
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
-
-    # Wait for one clock cycle to see the output values
+    dut._log.info("Apply another 1 rupee coin -> expect product")
+    dut.ui_in.value = 0b00000001
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0
     await ClockCycles(dut.clk, 1)
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+    assert dut.uo_out.value & 0b1, "Product should be dispensed after 2 x 1 rupee"
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    dut._log.info("Apply 2 rupee coin -> expect product")
+    dut.ui_in.value = 0b00000010  # coiny = 1
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 1)
+
+    assert dut.uo_out.value & 0b1, "Product should be dispensed after 1 x 2 rupee"
+
+    dut._log.info("Apply 2 rupee coin followed by another 2 rupee coin -> expect product + change")
+    dut.ui_in.value = 0b00000010
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 2)
+
+    dut.ui_in.value = 0b00000010
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 2)
+
+    assert dut.uo_out.value & 0b1, "Product should be dispensed after 2+2 rupees"
+    assert (dut.uo_out.value >> 1) & 0b1, "Change should be returned after 2+2 rupees"
