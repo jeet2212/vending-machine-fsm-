@@ -11,6 +11,7 @@ module tt_um_vending_machine (
     input  wire [7:0] uio_in,   // IOs: unused
     output wire [7:0] uio_out,
     output wire [7:0] uio_oe,
+    input wire ena,
     input  wire clk,            // clock
     input  wire rst_n           // async reset (active low)
 );
