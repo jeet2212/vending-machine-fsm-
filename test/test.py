@@ -24,7 +24,14 @@ async def test_project(dut):
     dut.ui_in.value = 1
     await RisingEdge(dut.clk)
     dut.ui_in.value = 0
+    await RisingEdge(dut.clk)
+
+    dut._log.info("Apply another 1 rupee coin -> expect product")
+    dut.ui_in.value = 1
+    await RisingEdge(dut.clk)
+    dut.ui_in.value = 0
     await RisingEdge(dut.clk)   # FSM updates
+    await RisingEdge(dut.clk)   # <-- extra cycle to catch pulse
     assert dut.uo_out.value & 0b1, "Product should be dispensed after 1+1 rupees"
 
     # Case 2: 2 -> product
@@ -33,6 +40,7 @@ async def test_project(dut):
     await RisingEdge(dut.clk)
     dut.ui_in.value = 0
     await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)   # <-- extra cycle to catch pulse
     assert dut.uo_out.value & 0b1, "Product should be dispensed after 1 x 2 rupee"
 
     # Case 3: 2 + 2 -> product + change
