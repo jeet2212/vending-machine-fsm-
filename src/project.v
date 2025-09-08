@@ -58,9 +58,11 @@ module tt_um_vending_machine (
                 if (coinx) begin
                     next = S1;
                 end else if (coiny) begin
-                    next = S2;
+                    prod_next = 1;  // vend immediately on single 2
+                    next = S0;
                 end
             end
+
 
             S1: begin
                 if (coinx) begin
