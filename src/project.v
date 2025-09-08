@@ -52,34 +52,38 @@ module tt_um_vending_machine (
         next        = state;
 
         case (state)
-           S0: begin
+          S0: begin
                 if (coinx) begin
                     next = S1;               // store 1 rupee
                 end else if (coiny) begin
-                    prod_next = 1;           // immediate vend for 2 rupees
+                    next = S2;               // store 2 rupees
+                end
+            end
+            
+            S1: begin
+                if (coinx) begin
+                    prod_next = 1;           // 1+1=2
+                    next = S0;
+                end else if (coiny) begin
+                    prod_next = 1;           // 1+2=3
+                    next = S0;
+                end
+            end
+            
+            S2: begin
+                if (coinx) begin
+                    prod_next = 1;           // 2+1=3
+                    next = S0;
+                end else if (coiny) begin
+                    prod_next   = 1;         // 2+2=4
+                    change_next = 1;
+                    next = S0;
+                end else begin
+                    prod_next = 1;           // 2 alone = vend
                     next = S0;
                 end
             end
 
-            S1: begin
-                if (coinx) begin
-                    prod_next = 1;  // vend at 2 rupees
-                    next = S0;
-                end else if (coiny) begin
-                    prod_next = 1;  // vend at 3 rupees
-                    next = S0;
-                end
-            end
-            S2: begin
-                if (coinx) begin
-                    prod_next = 1;  // vend at 3 rupees
-                    next = S0;
-                end else if (coiny) begin
-                    prod_next   = 1;  // vend
-                    change_next = 1;  // return change
-                    next = S0;
-                end
-            end
         endcase
     end
 
