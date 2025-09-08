@@ -26,29 +26,23 @@ module tt_um_vending_machine (
     // FSM states
     typedef enum logic [1:0] {
         S0 = 2'b00,  // idle
-        S1 = 2'b01   // 1 stored
+        S1 = 2'b01,  // 1 stored
+        S2 = 2'b10   // 2 stored
     } state_t;
 
     state_t state, next;
     reg prod_next, change_next;
-    reg last_two;  // remembers if last vend was from a 2
 
     // State update
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state    <= S0;
-            prod     <= 0;
-            change   <= 0;
-            last_two <= 0;
+            state  <= S0;
+            prod   <= 0;
+            change <= 0;
         end else begin
-            state    <= next;
-            prod     <= prod_next;
-            change   <= change_next;
-            if (prod_next && coiny) begin
-                last_two <= 1;  // just vended from a 2
-            end else begin
-                last_two <= 0;
-            end
+            state  <= next;
+            prod   <= prod_next;
+            change <= change_next;
         end
     end
 
@@ -62,30 +56,36 @@ module tt_um_vending_machine (
         case (state)
             S0: begin
                 if (coinx) begin
-                    next = S1;             // store 1
+                    next = S1;
                 end else if (coiny) begin
-                    prod_next = 1;         // immediate vend for 2
-                    next = S0;
+                    next = S2;
                 end
             end
 
             S1: begin
                 if (coinx) begin
-                    prod_next = 1;         // 1+1
+                    prod_next = 1;  // 1+1
                     next = S0;
                 end else if (coiny) begin
-                    prod_next = 1;         // 1+2
+                    prod_next = 1;  // 1+2
+                    next = S0;
+                end
+            end
+
+            S2: begin
+                if (coinx) begin
+                    prod_next = 1;  // 2+1
+                    next = S0;
+                end else if (coiny) begin
+                    prod_next   = 1;  // 2+2
+                    change_next = 1;
+                    next = S0;
+                end else begin
+                    prod_next = 1;  // single 2
                     next = S0;
                 end
             end
         endcase
-
-        // Handle 2+2 → product + change
-        if (last_two && coiny) begin
-            prod_next   = 1;
-            change_next = 1;
-            next        = S0;
-        end
     end
 
 endmodule
